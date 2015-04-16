@@ -29,17 +29,23 @@ public class HackerDetector {
 		final String[] tokens = line.split(",");
 
 		if (tokens.length == 4) {
+			final String key = tokens[0];
 			final long timestamp = Long.valueOf(tokens[1]);
+			Entry entry = attempts.get(key);
 
+			if (entry != null && entry.isExpired(timestamp)) {
+				attempts.remove(key);
+				entry = null;
+			}
+			
 			if ("SIGNIN_FAILURE".equals(tokens[2])) {
-				final Entry entry = attempts.get(tokens[0]);
 
-				if (entry == null || entry.isExpired(timestamp)) {
+				if (entry == null) {
 					attempts.put(tokens[0], new Entry(timestamp));
 				} else {
 					entry.registerFailure();
 
-					if (!entry.isExpired(timestamp) && entry.getFailures() == 5) {
+					if (entry.getFailures() >= 5) {
 						return tokens[0];
 					}
  				}

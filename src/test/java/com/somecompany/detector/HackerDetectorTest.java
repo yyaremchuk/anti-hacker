@@ -17,11 +17,6 @@ import org.junit.*;
  *
  */
 public class HackerDetectorTest {
-	
-	@Test
-	public void testNothing() {
-		System.out.println("OK");
-	}
 
 	@Test
 	public void testParseLine() {
@@ -45,6 +40,9 @@ public class HackerDetectorTest {
 		calendar.add(Calendar.SECOND, 40);
 		assertNull(detector.parseLine("80.238.9.179," + calendar.getTimeInMillis() + ",SIGNIN_FAILURE,Dave.Branning"));
 		
+		calendar.add(Calendar.SECOND, 40);		
+		assertEquals("80.238.9.179", detector.parseLine("80.238.9.179," + calendar.getTimeInMillis() + ",SIGNIN_FAILURE,Dave.Branning"));
+
 		calendar.add(Calendar.SECOND, 40);		
 		assertEquals("80.238.9.179", detector.parseLine("80.238.9.179," + calendar.getTimeInMillis() + ",SIGNIN_FAILURE,Dave.Branning"));
 	}
@@ -81,8 +79,29 @@ public class HackerDetectorTest {
 		assertNull(detector.parseLine("80.238.9.179," + calendar.getTimeInMillis() + ",SIGNIN_FAILURE,Dave.Branning"));
 		assertEquals(4, detector.getFailures("80.238.9.179"));
 
-		calendar.add(Calendar.MINUTE, 2);
+		calendar.add(Calendar.MINUTE, 3);
 		assertNull(detector.parseLine("80.238.9.179," + calendar.getTimeInMillis() + ",SIGNIN_FAILURE,Dave.Branning"));
 		assertEquals(1, detector.getFailures("80.238.9.179"));
-	}	
+	}
+	
+	/**
+	 * This assumption looks premature
+	 */
+	@Test
+	@Ignore
+	public void testRemovingRecordsAfterSuccess() {
+		final Calendar calendar = Calendar.getInstance();
+		final HackerDetector detector = new HackerDetector();
+
+		assertNull(detector.parseLine("80.238.9.179," + calendar.getTimeInMillis() + ",SIGNIN_FAILURE,Dave.Branning"));
+		assertEquals(1, detector.getFailures("80.238.9.179"));
+		
+		calendar.add(Calendar.MINUTE, 1);		
+		assertNull(detector.parseLine("80.238.9.179," + calendar.getTimeInMillis() + ",SIGNIN_FAILURE,Dave.Branning"));
+		assertEquals(2, detector.getFailures("80.238.9.179"));
+		
+		calendar.add(Calendar.MINUTE, 1);
+		assertNull(detector.parseLine("80.238.9.179," + calendar.getTimeInMillis() + ",SIGNIN_SUCCESS,Dave.Branning"));
+		assertEquals(0, detector.getFailures("80.238.9.179"));
+	}
 }
